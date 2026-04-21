@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Icono Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- Custom Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+        .sidebar-active { color: #3b82f6; background-color: #eff6ff; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%; width: 30px; height: 30px; animation: spin 2s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Fallback para cuando Tailwind no carga */
+        .hidden { display: none !important; }
+        
+        /* Estructura básica en caso de fallo de CSS externo */
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .min-h-full { min-height: 100vh; }
+        .h-full { height: 100%; }
+        .w-64 { width: 16rem; }
+        .flex-1 { flex: 1 1 0%; }
+        .bg-white { background-color: #ffffff; }
+        .border-r { border-right: 1px solid #e2e8f0; }
+        .border-b { border-bottom: 1px solid #e2e8f0; }
+        .p-6 { padding: 1.5rem; }
+        .p-8 { padding: 2rem; }
+        .gap-3 { gap: 0.75rem; }
+        .items-center { align-items: center; }
+        .justify-center { justify-content: center; }
+        .overflow-hidden { overflow: hidden; }
+        .overflow-y-auto { overflow-y: auto; }
+    </style>
+</head>
+<body class="h-full">
+
+    <!-- 1. Sección de Login -->
+    <div id="loginSection" class="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
+        <div class="sm:mx-auto sm:w-full sm:max-w-sm">
+            <div class="mx-auto h-12 w-12 flex items-center justify-center rounded-xl bg-blue-600 shadow-lg shadow-blue-200">
+                <i data-lucide="layout-dashboard" class="text-white h-7 w-7"></i>
+            </div>
+            <h2 class="mt-8 text-center text-2xl font-bold leading-9 tracking-tight text-slate-900">Bienvenido de nuevo</h2>
+            <p class="mt-2 text-center text-sm text-slate-500">Ingresa tus credenciales para continuar</p>
+        </div>
+
+        <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+            <form id="loginForm" class="space-y-6">
+                <div>
+                    <label for="nombre_corto" class="block text-sm font-medium leading-6 text-slate-900">Usuario</label>
+                    <div class="mt-2 relative">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <i data-lucide="user" class="h-4 w-4 text-slate-400"></i>
+                        </div>
+                        <input id="nombre_corto" name="nombre_corto" type="text" required class="block w-full rounded-lg border-0 py-2.5 pl-10 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="contraseña" class="block text-sm font-medium leading-6 text-slate-900">Contraseña</label>
+                    <div class="mt-2 relative">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <i data-lucide="lock" class="h-4 w-4 text-slate-400"></i>
+                        </div>
+                        <input id="contraseña" name="contraseña" type="password" required class="block w-full rounded-lg border-0 py-2.5 pl-10 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <button type="submit" class="flex w-full justify-center rounded-lg bg-blue-600 px-3 py-2.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition-all">
+                        Iniciar Sesión
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. Selección de Empresa (Tenant) -->
+    <div id="tenantSection" class="hidden min-h-full flex flex-col justify-center px-6 py-12 lg:px-8">
+        <div class="sm:mx-auto sm:w-full sm:max-w-md">
+            <h2 class="text-center text-2xl font-bold tracking-tight text-slate-900">Selecciona una Empresa</h2>
+            <p class="mt-2 text-center text-sm text-slate-500">Hemos encontrado estas empresas asociadas a tu cuenta</p>
+        </div>
+
+        <div id="tenantList" class="mt-10 sm:mx-auto sm:w-full sm:max-w-md grid gap-4">
+            <!-- Empresas dinámicas aquí -->
+        </div>
+        
+        <div class="mt-6 text-center">
+            <button onclick="logout()" class="text-sm font-medium text-slate-400 hover:text-slate-600 underline">Cerrar Sesión</button>
+        </div>
+    </div>
+
+    <!-- 2b. Verificación con Google (MFA) -->
+    <div id="googleAuthSection" class="hidden min-h-full flex flex-col justify-center px-6 py-12 lg:px-8">
+        <div class="sm:mx-auto sm:w-full sm:max-w-md bg-white p-8 rounded-2xl shadow-xl border border-slate-100 text-center">
+            <div class="mx-auto h-16 w-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mb-6">
+                <i data-lucide="shield-check" class="h-8 w-8"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-slate-900 mb-2">Verificación de Seguridad</h2>
+            <p class="text-slate-500 mb-8">Para acceder a <span id="verifyingTenantName" class="font-bold text-slate-900"></span>, por favor verifica tu identidad con Google.</p>
+            
+            <div class="flex justify-center mb-6">
+                <!-- Botón de Google se renderizará aquí -->
+                <div id="googleBtnContainer"></div>
+            </div>
+
+            <button onclick="switchTenant()" class="text-sm text-slate-400 hover:text-slate-600 transition-colors">Volver a la lista de empresas</button>
+        </div>
+    </div>
+
+    <!-- 3. Dashboard Principal -->
+    <div id="dashboardSection" class="hidden h-full flex overflow-hidden">
+        
+        <!-- Sidebar -->
+        <aside id="mainSidebar" class="w-64 bg-white border-r border-slate-200 flex flex-col">
+            <div class="p-6 border-b border-slate-100 flex items-center gap-3">
+                <div class="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center">
+                    <i data-lucide="layout-dashboard" class="text-white h-5 w-5"></i>
+                </div>
+                <span class="font-bold text-slate-900 tracking-tight">Icono ERP</span>
+            </div>
+            
+            <nav class="flex-1 overflow-y-auto p-4 space-y-2">
+                <div class="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Menú Principal</div>
+                <a href="#" onclick="showView('home')" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors sidebar-active" id="nav-home">
+                    <i data-lucide="home" class="h-5 w-5"></i> Dashboard
+                </a>
+                <a href="#" onclick="showView('queries')" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors" id="nav-queries">
+                    <i data-lucide="database" class="h-5 w-5"></i> Reportes Dinámicos
+                </a>
+                <a href="#" onclick="showView('crud')" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors" id="nav-crud">
+                    <i data-lucide="package" class="h-5 w-5"></i> Gestión de Datos
+                </a>
+                
+                <div id="admin-only-nav" class="hidden">
+                    <div class="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider mt-4">Administración</div>
+                    <a href="#" onclick="showView('users')" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors" id="nav-users">
+                        <i data-lucide="users" class="h-5 w-5"></i> Usuarios Empresa
+                    </a>
+                </div>
+                
+                <div class="px-3 py-6 text-xs font-semibold text-slate-400 uppercase tracking-wider">Configuración</div>
+                <a href="#" onclick="switchTenant()" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
+                    <i data-lucide="refresh-cw" class="h-5 w-5"></i> Cambiar Empresa
+                </a>
+            </nav>
+
+            <div class="p-4 border-t border-slate-100">
+                <div class="flex items-center gap-3 p-2">
+                    <div class="h-9 w-9 rounded-full bg-blue-100 flex items-center justify-center">
+                        <i data-lucide="user" class="text-blue-600 h-5 w-5"></i>
+                    </div>
+                    <div class="flex-1 overflow-hidden">
+                        <p class="text-sm font-semibold text-slate-900 truncate" id="userNameText">Usuario</p>
+                        <p class="text-xs text-slate-500 truncate" id="userRoleText">Admin</p>
+                    </div>
+                    <button onclick="logout()" aria-label="Cerrar sesión" class="p-1 hover:text-red-500 transition-colors"><i data-lucide="log-out" class="h-4 w-4"></i></button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col overflow-hidden">
+            <!-- Topbar -->
+            <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 shrink-0">
+                <div class="flex items-center gap-4">
+                    <button onclick="goBack()" aria-label="Regresar" class="p-2 text-slate-400 hover:text-blue-600 transition-colors">
+                        <i data-lucide="arrow-left" class="h-5 w-5"></i>
+                    </button>
+                    <h1 class="text-lg font-semibold text-slate-900" id="currentViewTitle">Dashboard</h1>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-full">
+                        <div class="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
+                        <span class="text-xs font-medium text-slate-700" id="activeTenantName">Empresa S.A.</span>
+                    </div>
+                    <button onclick="logout()" class="flex items-center gap-2 px-4 py-1.5 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 rounded-full transition-colors">
+                        <i data-lucide="log-out" class="h-3 w-3"></i> Cerrar Sesión
+                    </button>
+                </div>
+            </header>
+
+            <!-- View Container -->
+            <div class="flex-1 overflow-y-auto p-8" id="viewContent">
+                
+                <!-- 3a. Home View -->
+                <div id="view-home" class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <!-- KPIs -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <p class="text-sm font-medium text-slate-500">Total Clientes</p>
+                                <div class="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center"><i data-lucide="users" class="text-blue-600 h-5 w-5"></i></div>
+                            </div>
+                            <h3 class="mt-4 text-3xl font-bold text-slate-900" id="kpi-clientes">0</h3>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <p class="text-sm font-medium text-slate-500">Total Productos</p>
+                                <div class="h-10 w-10 rounded-xl bg-indigo-50 flex items-center justify-center"><i data-lucide="package" class="text-indigo-600 h-5 w-5"></i></div>
+                            </div>
+                            <h3 class="mt-4 text-3xl font-bold text-slate-900" id="kpi-productos">0</h3>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <p class="text-sm font-medium text-slate-500">Operaciones</p>
+                                <div class="h-10 w-10 rounded-xl bg-violet-50 flex items-center justify-center"><i data-lucide="trending-up" class="text-violet-600 h-5 w-5"></i></div>
+                            </div>
+                            <h3 class="mt-4 text-3xl font-bold text-slate-900" id="kpi-operaciones">0</h3>
+                        </div>
+                    </div>
+
+                    <!-- Charts -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
+                            <h4 class="font-bold text-slate-900 mb-6">Resumen Mensual</h4>
+                            <div class="h-80 w-full">
+                                <canvas id="mainChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
+                            <h4 class="font-bold text-slate-900 mb-6">Distribución por Categoría</h4>
+                            <div class="h-80 w-full">
+                                <canvas id="pieChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3b. Queries View -->
+                <div id="view-queries" class="hidden space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div class="flex items-center justify-between bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                        <div>
+                            <h3 class="font-bold text-slate-900">Motor de Consultas</h3>
+                            <p class="text-sm text-slate-500 mt-1">Ejecuta reportes dinámicos guardados en la base de datos</p>
+                        </div>
+                        <div class="flex gap-2">
+                             <select id="querySelect" aria-label="Seleccionar consulta" class="rounded-lg border-slate-200 text-sm focus:ring-blue-600 focus:border-blue-600 outline-none p-2">
+                                <option value="">Selecciona una consulta...</option>
+                             </select>
+                             <button id="runQueryBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-500 transition-colors">Ejecutar</button>
+                             <button id="exportQueryBtn" class="bg-slate-100 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-200 transition-colors">Exportar</button>
+                        </div>
+                    </div>
+                    
+                    <div id="queryResults" class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden min-h-[400px]">
+                        <div class="p-8 flex flex-col items-center justify-center text-slate-400 h-full mt-20">
+                            <i data-lucide="search" class="h-12 w-12 mb-4 opacity-20"></i>
+                            <p>Selecciona una consulta para ver los resultados</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3c. CRUD View -->
+                <div id="view-crud" class="hidden space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div class="flex items-center justify-between">
+                        <div class="flex bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
+                            <button onclick="loadCrud('clientes')" class="px-6 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white shadow-sm transition-all" id="btn-crud-clientes">Clientes</button>
+                            <button onclick="loadCrud('productos')" class="px-6 py-2 rounded-lg text-sm font-medium text-slate-500 hover:bg-slate-50 transition-all" id="btn-crud-productos">Productos</button>
+                        </div>
+                        <button id="addNewBtn" class="hidden bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-500 transition-colors flex items-center gap-2 shadow-sm">
+                            <i data-lucide="plus" class="h-4 w-4"></i> Nuevo Registro
+                        </button>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                        <table class="w-full text-left text-sm" id="crudTable">
+                            <thead class="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
+                                <tr>
+                                    <th class="px-6 py-4">ID</th>
+                                    <th class="px-6 py-4">Código</th>
+                                    <th class="px-6 py-4">Nombre</th>
+                                    <th class="px-6 py-4 text-right crud-admin-only hidden">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-50">
+                                <!-- Datos dinámicos -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 3d. Users View (Admin Only) -->
+                <div id="view-users" class="hidden space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div class="flex items-center justify-between bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                        <div>
+                            <h3 class="font-bold text-slate-900">Gestión de Usuarios</h3>
+                            <p class="text-sm text-slate-500 mt-1">Administra los usuarios que tienen acceso a esta empresa</p>
+                        </div>
+                        <button onclick="openCreateUserModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-500 transition-colors flex items-center gap-2 shadow-sm">
+                            <i data-lucide="user-plus" class="h-4 w-4"></i> Agregar Usuario
+                        </button>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                        <table class="w-full text-left text-sm" id="usersTable">
+                            <thead class="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
+                                <tr>
+                                    <th class="px-6 py-4">Nombre Corto</th>
+                                    <th class="px-6 py-4">Nombre Largo</th>
+                                    <th class="px-6 py-4">Rol</th>
+                                    <th class="px-6 py-4 text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-50">
+                                <!-- Datos dinámicos -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/app.js"></script>
+    <script>
+        // Inicializar Lucide si está cargado
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>
